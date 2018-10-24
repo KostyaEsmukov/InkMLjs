@@ -1,0 +1,9 @@
+*.config
+*.htm
+*.png
+*.pptx
+*.sln
+*.vssscc
+*.xml
+
+BuildProcessTemplates
