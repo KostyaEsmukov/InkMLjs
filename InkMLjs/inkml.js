@@ -7,7 +7,7 @@
  */
 
 // dpi for converting ink space (himetric) to pixels
-var g_dpi = 150;
+var g_dpi = 96;
 
 // xml namespaces
 var c_inkmlNS = "http://www.w3.org/2003/InkML";
