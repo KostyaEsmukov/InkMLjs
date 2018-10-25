@@ -6,9 +6,6 @@
  * version 0.1
  */
 
-// dpi for converting ink space (himetric) to pixels
-var g_dpi = 96;
-
 // xml namespaces
 var c_inkmlNS = "http://www.w3.org/2003/InkML";
 var c_xmlNS =   "http://www.w3.org/XML/1998/namespace";
@@ -66,6 +63,9 @@ $.extend(Ink.prototype,
 		options = options || {};
 		this.keepOffsets = options.keepOffsets || false;
 
+		// dpi for converting ink space (himetric) to pixels
+		this.dpi = options.dpi || 150;
+
 		if (inkml == null)
 			return;
 
@@ -87,7 +87,7 @@ $.extend(Ink.prototype,
 				id = "#" + id;
 			if (id)
 			{
-				var context = new InkContext($(this));
+				var context = new InkContext($(this), This.dpi);
 				This.contexts[id] = context;
 			}
 		});
@@ -276,7 +276,7 @@ $.extend(Ink.prototype,
 				ctx.lineCap = "round";
 				ctx.lineJoin = "round";
 
-				var pixelWidth = HiMetricToPixel(brush.width, g_dpi);
+				var pixelWidth = HiMetricToPixel(brush.width, This.dpi);
 				ctx.lineWidth = pixelWidth * 10;
 			}
 
@@ -337,7 +337,7 @@ $.extend(Ink.prototype,
 								force *= context.fFactor;
 								width += (width * force);
 							}
-							var pixelWidth = HiMetricToPixel(width, g_dpi);
+							var pixelWidth = HiMetricToPixel(width, This.dpi);
 							ctx.lineWidth = pixelWidth * 10;
 						}
 						ctx.moveTo(x1, y1);
@@ -455,14 +455,14 @@ $.extend(Ink.prototype,
 });
 
 // InkContext class
-InkContext = function (inkmlContext)
+InkContext = function (inkmlContext, dpi)
 {
-	this.init(inkmlContext);
+	this.init(inkmlContext, dpi);
 }
 $.extend(InkContext.prototype,
 {
 	// init this object by deserializing an InkML context
-	init: function (inkmlContext)
+	init: function (inkmlContext, dpi)
 	{
 		// members
 		this.inkSource = null;
@@ -472,6 +472,7 @@ $.extend(InkContext.prototype,
 		this.yFactor = 1;
 		this.fFactor = 1;
 		this.fNeutral = .5;
+		this._dpi = dpi;
 
 		var This = this;
 
@@ -489,8 +490,8 @@ $.extend(InkContext.prototype,
 
 			var xRes = UnitsToHiMetric(1 / xChan.resolution, xChan.units);
 			var yRes = UnitsToHiMetric(1 / yChan.resolution, yChan.units);
-			This.xFactor = HiMetricToPixel(xRes, g_dpi);
-			This.yFactor = HiMetricToPixel(yRes, g_dpi);
+			This.xFactor = HiMetricToPixel(xRes, This._dpi);
+			This.yFactor = HiMetricToPixel(yRes, This._dpi);
 
 			// compute force scaling factor
 			var fChan = This.inkSource.traceFormat.channels["F"];

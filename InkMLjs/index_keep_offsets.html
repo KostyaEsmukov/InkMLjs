@@ -101,7 +101,7 @@
 </inkml:ink></script>
 <script>
 var inkml = document.getElementById('inkml').innerHTML;
-var ink = new Ink(inkml, { keepOffsets: true });
+var ink = new Ink(inkml, { keepOffsets: true, dpi: 96 });
 
 var canvas = document.createElement('canvas');
 canvas.width = ink.getPixelWidth();
