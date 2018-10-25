@@ -42,14 +42,14 @@ $(document).ready(function ()
 });
 
 // Ink class
-Ink = function (inkml)
+Ink = function (inkml, options)
 {
-	this.init(inkml);
+	this.init(inkml, options);
 }
 $.extend(Ink.prototype,
 {
-	// init this object by deserializing InkML 
-	init: function (inkml)
+	// init this object by deserializing InkML
+	init: function (inkml, options)
 	{
 		// members
 		this.contexts = {};
@@ -62,6 +62,9 @@ $.extend(Ink.prototype,
 
 		this.deltas = [];
 		this.ctx = null;
+
+		options = options || {};
+		this.keepOffsets = options.keepOffsets || false;
 
 		if (inkml == null)
 			return;
@@ -186,7 +189,18 @@ $.extend(Ink.prototype,
 	{
 		var This = this;
 
-		var width = This.maxs[0] - This.mins[0];
+		var hi = 1;
+		var lo = 1e100;
+		$.each(This.contexts, function (id, context)
+		{
+			hi = Math.max(hi, Math.ceil(This.maxs[0] * context.xFactor));
+			lo = Math.min(lo, Math.ceil(This.mins[0] * context.xFactor));
+		});
+
+		var width = hi;
+		if (!This.keepOffsets) {
+			width = width - lo;
+		}
 		return width;
 	},
 
@@ -194,7 +208,18 @@ $.extend(Ink.prototype,
 	{
 		var This = this;
 
-		var height = This.maxs[1] - This.mins[1];
+		var hi = 1;
+		var lo = 1e100;
+		$.each(This.contexts, function (id, context)
+		{
+			hi = Math.max(hi, Math.ceil(This.maxs[1] * context.yFactor));
+			lo = Math.min(lo, Math.ceil(This.mins[1] * context.yFactor));
+		});
+
+		var height = hi;
+		if (!This.keepOffsets) {
+			height = height - lo;
+		}
 		return height;
 	},
 
@@ -262,8 +287,12 @@ $.extend(Ink.prototype,
 				{
 					if (ignorePressure)
 					{
-						var x = trace.value[i][0] - This.mins[0];
-						var y = trace.value[i][1] - This.mins[1];
+						var x = trace.value[i][0];
+						var y = trace.value[i][1];
+						if (!This.keepOffsets) {
+							x = x - This.mins[0];
+							y = y - This.mins[1];
+						}
 						ctx.moveTo(x, y);
 					}
 					else
@@ -276,16 +305,26 @@ $.extend(Ink.prototype,
 				{
 					if (ignorePressure)
 					{
-						var x = trace.value[i][0] - This.mins[0];
-						var y = trace.value[i][1] - This.mins[1];
+						var x = trace.value[i][0];
+						var y = trace.value[i][1];
+						if (!This.keepOffsets) {
+							x = x - This.mins[0];
+							y = y - This.mins[1];
+						}
 						ctx.lineTo(x, y);
 					}
 					else
 					{
-						var x1 = trace.value[i - 1][0] - This.mins[0];
-						var y1 = trace.value[i - 1][1] - This.mins[1];
-						var x2 = trace.value[i][0] - This.mins[0];
-						var y2 = trace.value[i][1] - This.mins[1];
+						var x1 = trace.value[i - 1][0];
+						var y1 = trace.value[i - 1][1];
+						var x2 = trace.value[i][0];
+						var y2 = trace.value[i][1];
+						if (!This.keepOffsets) {
+							x1 = x1 - This.mins[0];
+							y1 = y1 - This.mins[1];
+							x2 = x2 - This.mins[0];
+							y2 = y2 - This.mins[1];
+						}
 						if (brush)
 						{
 							// TODO: use named channels instead of assuming index 2 is force
